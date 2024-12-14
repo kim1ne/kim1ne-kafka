@@ -1,0 +1,20 @@
+{
+  "name":  "kim1ne/kafka-kit",
+  "config": {
+    "sort-packages": true
+  },
+  "version": "1.0.0",
+  "minimum-stability": "stable",
+  "require": {
+    "php": ">=8.1",
+    "ext-rdkafka": "*",
+    "react/event-loop": "^1.5",
+    "react/promise": "^2.11",
+    "wujunze/php-cli-color": "^2.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Kim1ne\\KafkaKit\\": "src/"
+    }
+  }
+}

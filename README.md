@@ -15,7 +15,7 @@ composer require kim1ne/kafka-kit
 #### Kafka Worker
 
 This is wrap of the library [RdKafka](https://arnaud.le-blanc.net/php-rdkafka-doc/phpdoc/index.html). The library uses libraries of the [ReactPHP](https://reactphp.org/) for async.
-Stream doesn't locks.
+Stream doesn't lock.
 ```php
 use Kim1ne\KafkaKit\InputMessage;
 use Kim1ne\KafkaKit\Kafka\KafkaConsumer;

@@ -14,8 +14,8 @@ composer require kim1ne/kafka-kit
 
 #### Kafka Worker
 
-This is wrap of library [RdKafka](https://arnaud.le-blanc.net/php-rdkafka-doc/phpdoc/index.html). The library used libraries of [ReactPHP](https://reactphp.org/) for async.
-Not locks stream.
+This is wrap of the library [RdKafka](https://arnaud.le-blanc.net/php-rdkafka-doc/phpdoc/index.html). The library uses libraries of [ReactPHP](https://reactphp.org/) for async.
+Stream doesn't locks.
 ```php
 use Kim1ne\KafkaKit\InputMessage;
 use Kim1ne\KafkaKit\Kafka\KafkaConsumer;
@@ -45,7 +45,7 @@ $worker->run();
 ```
 
 ### Launch several of workers
-This functional started [event loop](https://reactphp.org/event-loop/#usage) and lock stream.
+The functional starts [event loop](https://reactphp.org/event-loop/#usage) and locks stream.
 ```php
 \Kim1ne\KafkaKit\Kafka\ParallelWorkers::start(
     $worker1,
@@ -70,16 +70,16 @@ Stops the worker
 ```php
 $worker->stop();
 ```
-Set timeout for call method of RdKafka\Consumer::consume($timeout_ms)
+Sets timeout for call method of the RdKafka\Consumer::consume($timeout_ms)
 ```php
 $worker->setTimeoutMs(1000); // default 0
 ```
-Will be return RdKafka\Consumer
+Returns object of the RdKafka\Consumer:::class
 ```php
 $consumer = $worker->getConsumer();
 ```
 
-This method turn off sleep the worker, otherwise after 20 callbacks ->error the worker go to sleep for 5 seconds
+Disables the sleep mode
 ```php
 $worker->noSleep();
 ```

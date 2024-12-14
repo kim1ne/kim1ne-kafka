@@ -9,7 +9,7 @@ composer require kim1ne/kafka-kit
 ## Usage
 
 - [Kafka worker](#kafka-worker)
-- [Start many workers](#start-many-workers)
+- [Launch several of workers](#launch-several-of-workers)
 - [API](#api)
 
 #### Kafka Worker
@@ -44,7 +44,7 @@ $worker
 $worker->run();
 ```
 
-### Start many workers
+### Launch several of workers
 This functional started [event loop](https://reactphp.org/event-loop/#usage) and lock stream.
 ```php
 \Kim1ne\KafkaKit\Kafka\ParallelWorkers::start(

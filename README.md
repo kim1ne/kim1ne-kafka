@@ -28,7 +28,6 @@ $conf->set('metadata.broker.list', 'kafka:9092');
 $conf->set('group.id', 'my-group');
 // $conf->set(...) other settings
 
-InputMessage::green('Start Worker');
 $worker = new KafkaWorker($conf);
 
 $worker->subscribe(['my-topic'])
@@ -40,6 +39,8 @@ $worker
     ->critical(function (\Throwable $throwable) {
         InputMessage::red('Error: ' . $throwable->getMessage());
     });
+
+InputMessage::green('Start Worker');
 
 $worker->run();
 ```

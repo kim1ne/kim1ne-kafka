@@ -10,6 +10,7 @@
     "ext-rdkafka": "*",
     "react/event-loop": "^1.5",
     "react/promise": "^2.11",
+    "license": "MIT",
     "wujunze/php-cli-color": "^2.4"
   },
   "autoload": {

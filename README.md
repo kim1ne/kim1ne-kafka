@@ -17,10 +17,10 @@ composer require kim1ne/kafka-kit
 This is wrap of the library [RdKafka](https://arnaud.le-blanc.net/php-rdkafka-doc/phpdoc/index.html). The library uses libraries of the [ReactPHP](https://reactphp.org/) for async.
 Stream doesn't lock.
 ```php
-use Kim1ne\KafkaKit\InputMessage;
-use Kim1ne\KafkaKit\Kafka\KafkaConsumer;
-use Kim1ne\KafkaKit\Kafka\KafkaWorker;
-use Kim1ne\KafkaKit\Kafka\Message;
+use Kim1ne\InputMessage;
+use Kim1ne\Kafka\KafkaConsumer;
+use Kim1ne\Kafka\KafkaWorker;
+use Kim1ne\Kafka\Message;
 use RdKafka\Conf;
 
 $conf = new Conf();
@@ -47,7 +47,7 @@ $worker->run();
 ### Launch several of workers
 The functional starts [event loop](https://reactphp.org/event-loop/#usage) and locks stream.
 ```php
-\Kim1ne\KafkaKit\Kafka\ParallelWorkers::start(
+\Kim1ne\Kafka\ParallelWorkers::start(
     $worker1,
     $worker2,
     // ... $workerN
@@ -56,7 +56,7 @@ The functional starts [event loop](https://reactphp.org/event-loop/#usage) and l
 
 ### API
 ```php
-use Kim1ne\KafkaKit\Kafka\Message;
+use Kim1ne\Kafka\Message;
 
 $worker
     ->error(function (Message $message) {

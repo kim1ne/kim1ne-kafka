@@ -84,3 +84,20 @@ Disables the sleep mode
 ```php
 $worker->noSleep();
 ```
+
+Returns attempts of again processing
+```php
+/**
+ * @var \Kim1ne\Kafka\Message $message 
+ */
+$message->getAttempts();
+```
+
+Creates duplicate of the message. Increments attempt on 1. Sends the message to the end the topic.
+```php
+/**
+ * @var \Kim1ne\Kafka\KafkaConsumer $consumer 
+ * @var \Kim1ne\Kafka\Message $message
+ */
+$consumer->retry($message);
+```

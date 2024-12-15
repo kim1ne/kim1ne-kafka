@@ -3,7 +3,7 @@
 This package can be installed as a [Composer](https://getcomposer.org/) dependency.
 
 ```bash
-composer require kim1ne/kafka-kit
+composer require kim1ne/kafka
 ```
 
 ## Usage

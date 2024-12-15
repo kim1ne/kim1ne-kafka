@@ -98,6 +98,7 @@ Creates duplicate of the message. Increments attempt on 1. Sends the message to 
 /**
  * @var \Kim1ne\Kafka\KafkaConsumer $consumer 
  * @var \Kim1ne\Kafka\Message $message
+ * @var ?string $topicName
  */
-$consumer->retry($message);
+$consumer->retry($message, $topicName);
 ```

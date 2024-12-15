@@ -93,7 +93,7 @@ Returns attempts of again processing
 $message->getAttempts();
 ```
 
-Creates duplicate of the message. Increments attempt on 1. Sends the message to the end the topic.
+Creates duplicate of the message. Increments attempt on 1. Sends the message to the end the current topic.
 ```php
 /**
  * @var \Kim1ne\Kafka\KafkaConsumer $consumer 

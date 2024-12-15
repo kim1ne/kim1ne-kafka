@@ -1,6 +1,6 @@
 <?php
 
-namespace Kim1ne\KafkaKit\Kafka;
+namespace Kim1ne\Kafka;
 
 use RdKafka\Conf;
 use RdKafka\Message as KafkaMessage;

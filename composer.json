@@ -14,7 +14,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Kim1ne\\KafkaKit\\": "src/"
+      "Kim1ne\\": "src/"
     }
   }
 }

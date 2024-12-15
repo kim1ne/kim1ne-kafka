@@ -1,8 +1,8 @@
 <?php
 
-namespace Kim1ne\KafkaKit\Kafka;
+namespace Kim1ne\Kafka;
 
-use Kim1ne\KafkaKit\InputMessage;
+use Kim1ne\InputMessage;
 use React\EventLoop\Loop;
 
 class ParallelWorkers

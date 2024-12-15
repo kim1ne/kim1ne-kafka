@@ -1,6 +1,6 @@
 <?php
 
-namespace Kim1ne\KafkaKit;
+namespace Kim1ne;
 
 use Wujunze\Colors;
 

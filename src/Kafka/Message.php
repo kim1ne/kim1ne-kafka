@@ -1,6 +1,6 @@
 <?php
 
-namespace Kim1ne\KafkaKit\Kafka;
+namespace Kim1ne\Kafka;
 
 /**
  * @property $message

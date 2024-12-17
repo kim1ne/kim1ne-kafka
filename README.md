@@ -73,7 +73,7 @@ $worker->stop();
 ```
 Sets timeout for call method of the RdKafka\Consumer::consume($timeout_ms)
 ```php
-$worker->setTimeoutMs(1000); // default 0
+$worker->setTimeoutMs(1000); // default is 0
 ```
 Returns object of the RdKafka\Consumer:::class
 ```php

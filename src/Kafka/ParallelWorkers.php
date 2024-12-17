@@ -44,7 +44,7 @@ class ParallelWorkers
 
     /**
      * @return void
-     * Stops the worker if started parallel process
+     * Stops workers if started parallel process
      */
     public static function stop(): void
     {

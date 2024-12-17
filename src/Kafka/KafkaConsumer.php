@@ -128,7 +128,7 @@ class KafkaConsumer extends \RdKafka\KafkaConsumer
      * @throws \Throwable
      *
      * commits current message
-     * creates duplicate the message and sends to the end the topic
+     * creates duplicate the message, increments attempt on and sends to the end the topic
      *
      * the topic may be specified, otherwise will be selected the topic of the message
      */

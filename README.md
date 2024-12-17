@@ -48,14 +48,39 @@ $worker->run();
 ### Launch several of workers
 The functional starts [event loop](https://reactphp.org/event-loop/#usage) and locks stream.
 ```php
+use Kim1ne\InputMessage;
+use Kim1ne\Kafka\KafkaConsumer;
+use Kim1ne\Kafka\Message;
+/**
+ * @var \RdKafka\Conf $conf 
+ */
 \Kim1ne\Kafka\ParallelWorkers::start(
-    $worker1,
-    $worker2,
+    (new \Kim1ne\Kafka\KafkaWorker($conf))
+        ->subscribe(['topic-1'])
+        ->on(function (Message $message, KafkaConsumer $consumer) {
+            InputMessage::red('Message in the first worker!')
+        }),
+    (new \Kim1ne\Kafka\KafkaWorker($conf))
+        ->subscribe(['topic-2'])
+        ->on(function (Message $message, KafkaConsumer $consumer) {
+            InputMessage::red('Message in the second worker!')
+        }),
     // ... $workerN
 );
 ```
 
 ### API
+This callback will be called on message from the kafka
+```php
+use Kim1ne\Kafka\Message;
+use Kim1ne\Kafka\KafkaConsumer;
+
+$worker
+    ->on(function(Message $message, KafkaConsumer $consumer) {
+        // Message! 
+    });
+```
+This callback will be called if bad message
 ```php
 use Kim1ne\Kafka\Message;
 
@@ -67,20 +92,28 @@ $worker
     });
 ```
 
-Stops the worker
+In this callback will be called, will be thrown out an exception
+```php
+$worker
+    ->critical(function (\Throwable $e) {
+        // Error
+    })
+```
+
+Stops the worker. If is parallel process, that  destroys the worker and if he is last, stops the event-loop
 ```php
 $worker->stop();
 ```
-Sets timeout for call method of the RdKafka\Consumer::consume($timeout_ms)
+Sets timeout for call method of the [RdKafka\Consumer::consume($timeout_ms)](https://arnaud.le-blanc.net/php-rdkafka-doc/phpdoc/rdkafka-kafkaconsumer.consume.html)
 ```php
 $worker->setTimeoutMs(1000); // default is 0
 ```
-Returns object of the RdKafka\Consumer:::class
+Returns object of the [RdKafka\Consumer:::class](https://arnaud.le-blanc.net/php-rdkafka-doc/phpdoc/class.rdkafka-kafkaconsumer.html)
 ```php
 $consumer = $worker->getConsumer();
 ```
 
-Disables the sleep mode
+turns off the sleep mode. Will be too many errors, the worker will continue the work
 ```php
 $worker->noSleep();
 ```
@@ -93,12 +126,28 @@ Returns attempts of again processing
 $message->getAttempts();
 ```
 
-Creates duplicate of the message. Increments attempt on 1. Sends the message to the end the current topic.
+commits current message, creates duplicate the message, increments attempt on and sends to the end the topic. the topic may be specified, otherwise will be selected the topic of the message
 ```php
 /**
  * @var \Kim1ne\Kafka\KafkaConsumer $consumer 
- * @var \Kim1ne\Kafka\Message $message
- * @var ?string $topicName
  */
-$consumer->retry($message, $topicName);
+
+$consumer->retry(Message $message, ?string $overrideTopicName = null, int $timeWaiting = 10_000);
+```
+
+```php
+use Kim1ne\Kafka\Message;
+use Kim1ne\Kafka\KafkaConsumer;
+
+$worker
+    ->on(function (Message $message, KafkaConsumer $consumer) {
+        $attempts = $message->getAttempts();
+        
+        if ($attempts < 3) {
+            $consumer->retry($message);
+            return;
+        }
+        
+        $consumer->commitAsync($message);
+    });
 ```

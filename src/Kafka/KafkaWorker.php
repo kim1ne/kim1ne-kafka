@@ -10,7 +10,7 @@ use React\EventLoop\LoopInterface;
 class KafkaWorker
 {
     private bool $isRun = false;
-    private int|float $timeout_ms = 0;
+    private int|float $timeoutMs = 0;
 
     private int $countErrorMessage = 0;
 
@@ -28,47 +28,84 @@ class KafkaWorker
         $this->consumer = new KafkaConsumer($this->conf);
     }
 
+    /**
+     * @return KafkaConsumer
+     */
     public function getConsumer(): KafkaConsumer
     {
         return $this->consumer;
     }
 
+    /**
+     * @param array $topics
+     * @return $this
+     * @throws \RdKafka\Exception
+     */
     public function subscribe(array $topics): static
     {
         $this->consumer->subscribe($topics);
         return $this;
     }
 
-    public function setTimeoutMs(int|float $timeout_ms): self
+    /**
+     * @param int|float $timeoutMs
+     * @return $this
+     * time of waiting message from kafka
+     */
+    public function setTimeoutMs(int|float $timeoutMs): self
     {
-        $this->timeout_ms = $timeout_ms;
+        $this->timeoutMs = $timeoutMs;
         return $this;
     }
 
+    /**
+     * @param callable $callback
+     * @return $this
+     * this callback will be called on message from the kafka
+     */
     public function on(callable $callback): static
     {
         $this->callback = $callback;
         return $this;
     }
 
+    /**
+     * @param callable $callback
+     * @return $this
+     * this callback will be called if bad message
+     */
     public function error(callable $callback): static
     {
         $this->callbackError = $callback;
         return $this;
     }
 
+    /**
+     * @return $this
+     * turns off the sleep mode
+     * will be too many errors, the worker will continue the work
+     */
     public function noSleep(): static
     {
         $this->sleep = false;
         return $this;
     }
 
+    /**
+     * @param callable $callback
+     * @return $this
+     * in this callback will be called, will be thrown out an exception
+     */
     public function critical(callable $callback): static
     {
         $this->callbackCritical = $callback;
         return $this;
     }
 
+    /**
+     * @param LoopInterface $loop
+     * @return $this
+     */
     public function setLoop(LoopInterface $loop): static
     {
         if ($this->isRun) {
@@ -85,6 +122,12 @@ class KafkaWorker
         $this->stop();
     }
 
+    /**
+     * @return void
+     * Stops the worker
+     * if is parallel process, that  destroys the worker
+     * and if he is last, stops the event-loop
+     */
     public function stop(): void
     {
         if ($this->isRun === false) {
@@ -101,6 +144,10 @@ class KafkaWorker
         }
     }
 
+    /**
+     * @return void
+     * The worker sleeps, if too many errors and turned on sleep-mode
+     */
     private function sleep(): void
     {
         InputMessage::green('Too many errors, sleeping for 5 seconds...');
@@ -113,6 +160,11 @@ class KafkaWorker
         });
     }
 
+    /**
+     * @return void
+     * Starts the sna starts loop
+     * @see https://reactphp.org/event-loop/#loop
+     */
     public function run(): void
     {
         $this->isRun = true;
@@ -137,11 +189,9 @@ class KafkaWorker
                 return;
             }
 
-            $promise = $this->consumer->consume($this->timeout_ms);
+            $promise = $this->consumer->consume($this->timeoutMs);
 
             $promise->then(function (Message $message) {
-                $args = [$message, $this->consumer];
-
                 if ($message->err !== RD_KAFKA_RESP_ERR_NO_ERROR) {
 
                     if ($message->err === RD_KAFKA_RESP_ERR__TIMED_OUT) {

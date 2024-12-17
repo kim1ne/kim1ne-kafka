@@ -13,12 +13,19 @@ class KafkaConsumer extends \RdKafka\KafkaConsumer
 {
     private ?Producer $producer = null;
 
+    /**
+     * @param $timeoutMs
+     * @return Promise
+     *
+     * returns the promise
+     * @see https://reactphp.org/promise/
+     */
     #[\ReturnTypeWillChange]
-    public function consume($timeout_ms): Promise
+    public function consume($timeoutMs): Promise
     {
-        return new Promise(function ($resolve, $reject) use ($timeout_ms) {
+        return new Promise(function ($resolve, $reject) use ($timeoutMs) {
             try {
-                $message = Message::fromRdKafka(parent::consume($timeout_ms));
+                $message = Message::fromRdKafka(parent::consume($timeoutMs));
                 $resolve($message);
             } catch (\Throwable $throwable) {
                 $reject($throwable);
@@ -26,25 +33,44 @@ class KafkaConsumer extends \RdKafka\KafkaConsumer
         });
     }
 
-    public function commit(KafkaMessage|Message|array|null $message_or_offsets = null): void
+    /**
+     * @param KafkaMessage|Message|array|null $messageOrOffset
+     * @return void
+     */
+    public function commit(KafkaMessage|Message|array|null $messageOrOffset = null): void
     {
-        $this->fromTheWrap('commit', $message_or_offsets);
+        $this->fromTheWrap('commit', $messageOrOffset);
     }
 
-    private function fromTheWrap(string $method, KafkaMessage|Message|array|null $message_or_offsets = null): void
+    /**
+     * @param string $method
+     * @param KafkaMessage|Message|array|null $messageOrOffset
+     * @return void
+     */
+    private function fromTheWrap(string $method, KafkaMessage|Message|array|null $messageOrOffset = null): void
     {
-        if ($message_or_offsets instanceof Message) {
-            $message_or_offsets = $message_or_offsets->message;
+        if ($messageOrOffset instanceof Message) {
+            $messageOrOffset = $messageOrOffset->message;
         }
 
-        parent::$method($message_or_offsets);
+        parent::$method($messageOrOffset);
     }
 
-    public function commitAsync(KafkaMessage|Message|array|null $message_or_offsets = null): void
+    /**
+     * @param KafkaMessage|Message|array|null $messageOrOffset
+     * @return void
+     */
+    public function commitAsync(KafkaMessage|Message|array|null $messageOrOffset = null): void
     {
-        $this->fromTheWrap('commitAsync', $message_or_offsets);
+        $this->fromTheWrap('commitAsync', $messageOrOffset);
     }
 
+    /**
+     * @return string
+     * @throws \RdKafka\Exception
+     *
+     * Returns all brokers that the consumer is listening to
+     */
     public function getBrokers(): string
     {
         /**
@@ -60,6 +86,12 @@ class KafkaConsumer extends \RdKafka\KafkaConsumer
         return implode(',', $brokerList);
     }
 
+    /**
+     * @param string|null $transactionalId
+     * @param int|null $timeWaiting
+     * @return Producer
+     * @throws \RdKafka\Exception
+     */
     private function createProducer(?string $transactionalId = null, ?int $timeWaiting = null): Producer
     {
         if ($this->producer !== null) {
@@ -87,6 +119,19 @@ class KafkaConsumer extends \RdKafka\KafkaConsumer
         return $producer;
     }
 
+    /**
+     * @param Message $message
+     * @param string|null $overrideTopicName
+     * @param int $timeWaiting
+     * @return void
+     * @throws \RdKafka\Exception
+     * @throws \Throwable
+     *
+     * commits current message
+     * creates duplicate the message and sends to the end the topic
+     *
+     * the topic may be specified, otherwise will be selected the topic of the message
+     */
     public function retry(Message $message, ?string $overrideTopicName = null, int $timeWaiting = 10_000): void
     {
         $message->incrementAttempts();

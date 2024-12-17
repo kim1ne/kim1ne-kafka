@@ -10,6 +10,13 @@ class ParallelWorkers
     private static bool $isParalleled = false;
     private static array $workers = [];
 
+    /**
+     * @param KafkaWorker ...$workers
+     * @return void
+     *
+     * The function runs workers and starts the event-loop
+     * @see https://reactphp.org/event-loop/#usage
+     */
     public static function start(KafkaWorker ...$workers): void
     {
         InputMessage::green('Starting workers...');
@@ -35,6 +42,10 @@ class ParallelWorkers
         InputMessage::green("Loop finished.");
     }
 
+    /**
+     * @return void
+     * Stops the worker if started parallel process
+     */
     public static function stop(): void
     {
         foreach (self::$workers as $worker) {
@@ -42,11 +53,24 @@ class ParallelWorkers
         }
     }
 
+    /**
+     * @param KafkaWorker $worker
+     * @return string
+     */
     private static function getHashWorker(KafkaWorker $worker): string
     {
         return spl_object_hash($worker);
     }
 
+    /**
+     * @param KafkaWorker $worker
+     * @return void
+     *
+     * if will started parallel process
+     * the worker stops
+     *
+     * if this is the last worker, that stops the event loop
+     */
     public static function destroyWorker(KafkaWorker $worker): void
     {
         $hash = self::getHashWorker($worker);
@@ -61,6 +85,10 @@ class ParallelWorkers
         }
     }
 
+    /**
+     * @return bool
+     * the parallel process started?
+     */
     public static function isParalleled(): bool
     {
         return self::$isParalleled;

@@ -61,7 +61,7 @@ use Kim1ne\Kafka\Message;
 
 $worker
     ->error(function (Message $message) {
-        // callback for bad message
+        // the callback for bad message
         // $message->err !== RD_KAFKA_RESP_ERR_NO_ERROR
         // except messages with error code === RD_KAFKA_RESP_ERR__TIMED_OUT 
     });

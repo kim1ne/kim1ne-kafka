@@ -3,11 +3,12 @@
 namespace Kim1ne\Kafka;
 
 use Kim1ne\InputMessage;
+use Kim1ne\Looper;
 use RdKafka\Conf;
 use React\EventLoop\Loop;
 use React\EventLoop\LoopInterface;
 
-class KafkaWorker
+class KafkaWorker implements Looper
 {
     private bool $isRun = false;
     private int|float $timeoutMs = 0;
@@ -20,12 +21,20 @@ class KafkaWorker
     public KafkaConsumer $consumer;
     private bool $sleep = true;
 
+    private float|int $timeSleep = 5;
+
     public function __construct(
         public Conf $conf,
         public ?LoopInterface $loop = null,
     )
     {
         $this->consumer = new KafkaConsumer($this->conf);
+    }
+
+    public function setTimeSleep(float|int $seconds): self
+    {
+        $this->timeSleep = $seconds;
+        return $this;
     }
 
     /**
@@ -148,13 +157,14 @@ class KafkaWorker
      * @return void
      * The worker sleeps, if too many errors and turned on sleep-mode
      */
-    private function sleep(): void
+    public function sleep(): void
     {
-        InputMessage::green('Too many errors, sleeping for 5 seconds...');
+        $timeSleep = $this->timeSleep;
+        InputMessage::green('Too many errors, sleeping for ' . $timeSleep . ' seconds...');
         $this->countErrorMessage = 0;
 
         $this->isRun = false;
-        $this->loop->addTimer(5, function () {
+        $this->loop->addTimer($timeSleep, function () {
             $this->isRun = true;
             InputMessage::green('Resuming Kafka worker...');
         });
@@ -168,12 +178,7 @@ class KafkaWorker
     public function run(): void
     {
         $this->isRun = true;
-        $loop = $this->loop;
-
-        if ($loop === null) {
-            $loop = Loop::get();
-            $this->loop = $loop;
-        }
+        $loop = $this->getLoop();
 
         if (!isset($this->callback)) {
             return;
@@ -213,5 +218,14 @@ class KafkaWorker
                 }
             });
         });
+    }
+
+    public function getLoop(): LoopInterface
+    {
+        if ($this->loop === null) {
+            $this->loop = Loop::get();
+        }
+
+        return $this->loop;
     }
 }

@@ -11,4 +11,6 @@ interface Looper
     public function getLoop(): LoopInterface;
 
     public function run(): void;
+
+    public function stop(): void;
 }

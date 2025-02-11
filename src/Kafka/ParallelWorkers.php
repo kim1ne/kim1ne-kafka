@@ -2,9 +2,12 @@
 
 namespace Kim1ne\Kafka;
 
-use Kim1ne\InputMessage;
+use Kim1ne\Core\InputMessage;
 use React\EventLoop\Loop;
 
+/**
+ * @deprecated
+ */
 class ParallelWorkers
 {
     private static bool $isParalleled = false;

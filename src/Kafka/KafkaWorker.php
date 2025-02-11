@@ -2,34 +2,25 @@
 
 namespace Kim1ne\Kafka;
 
-use Kim1ne\InputMessage;
-use Kim1ne\Looper;
+use Kim1ne\Core\EventLoopTrait;
+use Kim1ne\Core\InputMessage;
+use Kim1ne\Core\LooperInterface;
 use RdKafka\Conf;
 use React\EventLoop\Loop;
 use React\EventLoop\LoopInterface;
 
-class KafkaWorker implements Looper
+class KafkaWorker implements LooperInterface
 {
-    private bool $isRun = false;
+    use EventLoopTrait;
     private int|float $timeoutMs = 0;
 
     private int $countErrorMessage = 0;
-
-    private readonly \Closure $callback;
-    private readonly \Closure $callbackError;
-    private readonly \Closure $callbackCritical;
-    public KafkaConsumer $consumer;
+    public ?KafkaConsumer $consumer = null;
     private bool $sleep = true;
 
     private float|int $timeSleep = 5;
 
-    public function __construct(
-        public Conf $conf,
-        public ?LoopInterface $loop = null,
-    )
-    {
-        $this->consumer = new KafkaConsumer($this->conf);
-    }
+    public function __construct(public Conf $conf) {}
 
     public function setTimeSleep(float|int $seconds): self
     {
@@ -42,6 +33,10 @@ class KafkaWorker implements Looper
      */
     public function getConsumer(): KafkaConsumer
     {
+        if (null === $this->consumer) {
+            $this->consumer = new KafkaConsumer($this->conf);
+        }
+
         return $this->consumer;
     }
 
@@ -52,7 +47,7 @@ class KafkaWorker implements Looper
      */
     public function subscribe(array $topics): static
     {
-        $this->consumer->subscribe($topics);
+        $this->getConsumer()->subscribe($topics);
         return $this;
     }
 
@@ -70,18 +65,9 @@ class KafkaWorker implements Looper
     /**
      * @param callable $callback
      * @return $this
-     * this callback will be called on message from the kafka
-     */
-    public function on(callable $callback): static
-    {
-        $this->callback = $callback;
-        return $this;
-    }
-
-    /**
-     * @param callable $callback
-     * @return $this
      * this callback will be called if bad message
+     *
+     * @deprecated
      */
     public function error(callable $callback): static
     {
@@ -104,31 +90,13 @@ class KafkaWorker implements Looper
      * @param callable $callback
      * @return $this
      * in this callback will be called, will be thrown out an exception
+     *
+     * @deprecated
      */
     public function critical(callable $callback): static
     {
         $this->callbackCritical = $callback;
         return $this;
-    }
-
-    /**
-     * @param LoopInterface $loop
-     * @return $this
-     */
-    public function setLoop(LoopInterface $loop): static
-    {
-        if ($this->isRun) {
-            throw new \RuntimeException('Kafka worker is already run.');
-        }
-
-        $this->loop = $loop;
-
-        return $this;
-    }
-
-    public function __destruct()
-    {
-        $this->stop();
     }
 
     /**
@@ -139,18 +107,14 @@ class KafkaWorker implements Looper
      */
     public function stop(): void
     {
-        if ($this->isRun === false) {
+        if ($this->isRun() === false) {
             return;
         }
 
         $this->isRun = false;
-        $this->consumer->close();
+        $this->getConsumer()->close();
 
-        if (!ParallelWorkers::isParalleled()) {
-            $this->loop->stop();
-        } else {
-            ParallelWorkers::destroyWorker($this);
-        }
+        $this->stopLoop();
     }
 
     /**
@@ -177,7 +141,6 @@ class KafkaWorker implements Looper
      */
     public function run(): void
     {
-        $this->isRun = true;
         $loop = $this->getLoop();
 
         if (!isset($this->callback)) {
@@ -194,7 +157,7 @@ class KafkaWorker implements Looper
                 return;
             }
 
-            $promise = $this->consumer->consume($this->timeoutMs);
+            $promise = $this->getConsumer()->consume($this->timeoutMs);
 
             $promise->then(function (Message $message) {
                 if ($message->err !== RD_KAFKA_RESP_ERR_NO_ERROR) {
@@ -204,28 +167,22 @@ class KafkaWorker implements Looper
                     }
 
                     ++$this->countErrorMessage;
-                    if (isset($this->callbackError)) {
-                        call_user_func($this->callbackError, $message);
-                    }
+                    $this->call('error', [$message]);
 
                     return;
                 }
 
-                call_user_func_array($this->callback, [$message, $this->consumer]);
+                $this->call('message', [$message, $this->getConsumer()]);
             })->otherwise(function (\Throwable $throwable) {
-                if (isset($this->callbackCritical)) {
-                    call_user_func($this->callbackCritical, $throwable);
-                }
+                $this->call('critical', [$throwable]);
             });
         });
+
+        $this->runLoop();
     }
 
-    public function getLoop(): LoopInterface
+    public function getScopeName(): string
     {
-        if ($this->loop === null) {
-            $this->loop = Loop::get();
-        }
-
-        return $this->loop;
+        return 'kafka:worker';
     }
 }
